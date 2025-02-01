@@ -200,12 +200,19 @@ fun App() {
                                     // Обчислюємо індекс рядка та стовпчика за координатами кліку
                                     val row = (offset.y / cellSize.toPx()).toInt()
                                     val col = (offset.x / cellSize.toPx()).toInt()
+
+                                    val fixedCellsCount = boardState.sumOf { row -> row.count { it == -1 } }
+
                                     // Перевіряємо, чи існує така клітинка (не всі рядки мають однакову кількість клітинок)
                                     if (row in boardState.indices && col in boardState[row].indices) {
                                         // Якщо клітинка порожня, зафіксуємо її (значення -1)
-                                        if (boardState[row][col] == 0) {
+                                        if (boardState[row][col] == 0 && fixedCellsCount < 2) {
                                             boardState = boardState.map { it.toMutableList() }.toMutableList().also {
                                                 it[row][col] = -1
+                                            }
+                                        } else if (boardState[row][col] == -1) {
+                                            boardState = boardState.map { it.toMutableList() }.toMutableList().also {
+                                                it[row][col] = 0
                                             }
                                         }
                                     }
@@ -246,28 +253,35 @@ fun App() {
                 Row {
                     if (markingFixed) {
                         Button(onClick = {
-                            markingFixed = false
-                            message = "Фіксація завершена. Натисніть «Розв’язати» для пошуку рішення."
+                            val fixedCellsCount = boardState.sumOf { row -> row.count { it == -1 } }
+                            if (fixedCellsCount != 2) {
+                                message = "Помилка! Ви повинні вибрати рівно дві зафіксовані клітинки."
+                            } else {
+                                markingFixed = false
+                                message = "Фіксація завершена. Натисніть «Розв’язати» для пошуку рішення."
+                            }
                         }) {
                             Text("Готово")
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                     }
-                    Button(onClick = {
-                        // Готуємо копію поля для розв’язувача:
-                        // Зафіксовані клітинки (значення -1) не змінюються, інші – 0.
-                        val boardForSolver: Board = boardState.map { row ->
-                            row.map { if (it == -1) -1 else 0 }.toMutableList()
-                        }.toMutableList()
-                        solution = solvePuzzle(boardForSolver, pieces)
-                        if (solution != null) {
-                            message = "Розв’язок знайдено!"
-                            boardState = solution!!
-                        } else {
-                            message = "Розв’язок не знайдено."
+                    if (!markingFixed && solution == null) {
+                        Button(onClick = {
+                            // Готуємо копію поля для розв’язувача:
+                            // Зафіксовані клітинки (значення -1) не змінюються, інші – 0.
+                            val boardForSolver: Board = boardState.map { row ->
+                                row.map { if (it == -1) -1 else 0 }.toMutableList()
+                            }.toMutableList()
+                            solution = solvePuzzle(boardForSolver, pieces)
+                            if (solution != null) {
+                                message = "Розв’язок знайдено!"
+                                boardState = solution!!
+                            } else {
+                                message = "Розв’язок не знайдено."
+                            }
+                        }) {
+                            Text("Розв’язати")
                         }
-                    }) {
-                        Text("Розв’язати")
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(onClick = {
