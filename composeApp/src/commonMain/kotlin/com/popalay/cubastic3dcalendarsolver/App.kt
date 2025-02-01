@@ -78,14 +78,14 @@ data class Piece(
 // Визначаємо 8 деталей з різними формами та кольорами.
 // (Примітка. Фігури залишено без зміни – їх сумарна площа становить 30 клітинок)
 val pieces = listOf(
-    Piece(1, listOf(0 to 0, 1 to 0, 2 to 0, 3 to 0, 3 to 1), MaterialTheme.colors.),       // L-подібна (5 клітинок)
-    Piece(2, listOf(0 to 0, 0 to 1, 1 to 0, 1 to 1, 2 to 0, 2 to 1), Color.Blue), // Прямокутник (6)
-    Piece(3, listOf(0 to 0, 0 to 1, 1 to 1, 2 to 0, 2 to 1), Color.Cyan),       // U-подібна (5)
-    Piece(4, listOf(0 to 0, 1 to 0, 1 to 1, 1 to 2, 2 to 2), Color.Yellow),               // Z-подібна (5)
-    Piece(5, listOf(0 to 1, 1 to 1, 2 to 1, 3 to 1, 1 to 0), Color.Magenta), // T-подібна (5 клітинок)
-    Piece(6, listOf(0 to 0, 0 to 1, 1 to 0, 1 to 1, 2 to 0), Color.Gray),       // Неправильний прямокутник (5)
-    Piece(7, listOf(0 to 0, 1 to 0, 2 to 0, 2 to 1, 2 to 2), Color.Red), // L-подібна (4 клітинки)
-    Piece(7, listOf(0 to 0, 1 to 0, 2 to 0, 2 to 1, 2 to 1, 3 to 1), Color.Green) // L-подібна (4 клітинки)
+    Piece(1, listOf(0 to 0, 1 to 0, 2 to 0, 3 to 0, 3 to 1), Color(0xFFFF5733)),       // L-подібна (5 клітинок)
+    Piece(2, listOf(0 to 0, 0 to 1, 1 to 0, 1 to 1, 2 to 0, 2 to 1), Color(0xFF33FF57)), // Прямокутник (6)
+    Piece(3, listOf(0 to 0, 0 to 1, 1 to 1, 2 to 0, 2 to 1), Color(0xFF3357FF)),       // U-подібна (5)
+    Piece(4, listOf(0 to 0, 1 to 0, 1 to 1, 1 to 2, 2 to 2), Color(0xFFFF33A1)),               // Z-подібна (5)
+    Piece(5, listOf(0 to 1, 1 to 1, 2 to 1, 3 to 1, 1 to 0), Color(0xFFA133FF)), // T-подібна (5 клітинок)
+    Piece(6, listOf(0 to 0, 0 to 1, 1 to 0, 1 to 1, 2 to 0), Color(0xFFFE9957)),       // Неправильний прямокутник (5)
+    Piece(7, listOf(0 to 0, 1 to 0, 2 to 0, 2 to 1, 2 to 2), Color(0xFF33B0FF)), // L-подібна (5 клітинки)
+    Piece(8, listOf(0 to 0, 1 to 0, 2 to 0, 2 to 1, 2 to 1, 3 to 1), Color(0xFFC0FA49)) // S-подібна (5 клітинки)
 
 )
 
@@ -157,7 +157,7 @@ fun App() {
     // Створюємо початкове поле відповідно до boardStructure:
     // Кожен рядок – список з початковими значеннями 0 (порожні клітинки)
     var boardState by remember {
-        mutableStateOf<Board>(boardStructure.map { MutableList(it) { 0 } }.toMutableList())
+        mutableStateOf(boardStructure.map { MutableList(it) { 0 } }.toMutableList())
     }
     // Режим позначення зафіксованих клітинок (орієнтирів)
     var markingFixed by remember { mutableStateOf(true) }
