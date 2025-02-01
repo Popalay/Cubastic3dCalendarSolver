@@ -78,14 +78,14 @@ data class Piece(
 // Визначаємо 8 деталей з різними формами та кольорами.
 // (Примітка. Фігури залишено без зміни – їх сумарна площа становить 30 клітинок)
 val pieces = listOf(
-    Piece(1, listOf(0 to 0, 1 to 0, 2 to 0, 3 to 0, 3 to 1), Color.Green),       // L-подібна (5 клітинок)
+    Piece(1, listOf(0 to 0, 1 to 0, 2 to 0, 3 to 0, 3 to 1), MaterialTheme.colors.),       // L-подібна (5 клітинок)
     Piece(2, listOf(0 to 0, 0 to 1, 1 to 0, 1 to 1, 2 to 0, 2 to 1), Color.Blue), // Прямокутник (6)
     Piece(3, listOf(0 to 0, 0 to 1, 1 to 1, 2 to 0, 2 to 1), Color.Cyan),       // U-подібна (5)
     Piece(4, listOf(0 to 0, 1 to 0, 1 to 1, 1 to 2, 2 to 2), Color.Yellow),               // Z-подібна (5)
     Piece(5, listOf(0 to 1, 1 to 1, 2 to 1, 3 to 1, 1 to 0), Color.Magenta), // T-подібна (5 клітинок)
     Piece(6, listOf(0 to 0, 0 to 1, 1 to 0, 1 to 1, 2 to 0), Color.Gray),       // Неправильний прямокутник (5)
     Piece(7, listOf(0 to 0, 1 to 0, 2 to 0, 2 to 1, 2 to 2), Color.Red), // L-подібна (4 клітинки)
-    Piece(7, listOf(0 to 0, 1 to 0, 2 to 0, 2 to 1, 2 to 1, 3 to 1), Color.Red) // L-подібна (4 клітинки)
+    Piece(7, listOf(0 to 0, 1 to 0, 2 to 0, 2 to 1, 2 to 1, 3 to 1), Color.Green) // L-подібна (4 клітинки)
 
 )
 
