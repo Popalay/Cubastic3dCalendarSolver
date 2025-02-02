@@ -1,18 +1,9 @@
-This is a Kotlin Multiplatform project targeting Web, Desktop.
 
-* `/composeApp` is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - `commonMain` is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    `iosMain` would be the right folder for such calls.
+![image](https://github.com/user-attachments/assets/03f2fd85-f847-4ee0-9faa-b7ce24325e14)
 
+📅 Календар від Cubastic 3D — це захоплива настільна гра, яка поєднує в собі функціональність календаря та головоломку на кожен день.
+Обери будь-яку дату, наприклад сьогоднішній день та місяць, і познач їх квадратними елементими. Все, календар працює! Але ж ми не шукаємо легких шляхів? Тепер помісти всі інші ігрові елементи в рамку, повністю заповнюючи порожній простір.
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
-[Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform),
-[Kotlin/Wasm](https://kotl.in/wasm/)…
+>Для того щоб протестивати o3-mini model, я дав їй задачу написати solver для цієї головоломки. Готовий реультат був отриманий з 2х повідомлень, далі я правивив тільки мінорні речі в дизайні.
 
-We would appreciate your feedback on Compose/Web and Kotlin/Wasm in the public Slack channel [#compose-web](https://slack-chats.kotlinlang.org/c/compose-web).
-If you face any issues, please report them on [GitHub](https://github.com/JetBrains/compose-multiplatform/issues).
-
-You can open the web application by running the `:composeApp:wasmJsBrowserDevelopmentRun` Gradle task.
+Web App - https://popalay.github.io/Cubastic3dCalendarSolver/
