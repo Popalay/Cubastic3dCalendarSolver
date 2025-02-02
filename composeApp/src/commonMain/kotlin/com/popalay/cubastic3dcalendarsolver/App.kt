@@ -1,15 +1,10 @@
 package com.popalay.cubastic3dcalendarsolver
 
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,6 +14,9 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -27,20 +25,20 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 // Опис структури ігрового поля
 // ----------------------------------------------------------------
 // Ми використовуємо нерегулярну сітку – кожен рядок має свою кількість клітинок.
-val boardStructure = listOf(6, 6, 7, 7, 7, 7, 3) // 7 рядків: 6,6,7,7,7,7,3 клітинок відповідно
+private val boardStructure = listOf(6, 6, 7, 7, 7, 7, 3) // 7 рядків: 6,6,7,7,7,7,3 клітинок відповідно
 
 // Тип для ігрового поля – список рядків, кожен з яких є змінним списком чисел.
 // Значення:
 //   -1 – зафіксована (орієнтир, наприклад, літера/число)
 //    0 – порожня (можна заповнювати фігурами)
 //    1..8 – заповнена деталлю з відповідним ідентифікатором
-typealias Board = MutableList<MutableList<Int>>
+private typealias Board = MutableList<MutableList<Int>>
 
 // Розмір однієї клітинки (як на зображенні)
-val cellSize: Dp = 60.dp
+private val cellSize: Dp = 40.dp
 
 // Максимальна кількість клітинок у рядку – для визначення ширини Canvas
-val maxCols = boardStructure.maxOrNull() ?: 0
+private val maxCols = boardStructure.maxOrNull() ?: 0
 
 // ----------------------------------------------------------------
 // Опис фігур (деталей головоломки)
@@ -49,7 +47,7 @@ val maxCols = boardStructure.maxOrNull() ?: 0
 // Загальна площа клітинок деталей повинна дорівнювати кількості незаповнених клітинок.
 // Припустимо, що фігури займають сумарно 30 клітинок, а решта (43 – 30 = 13)
 // має бути зафіксовано (наприклад, для назви місяця або інших орієнтирів).
-data class Piece(
+private data class Piece(
     val id: Int,
     val cells: List<Pair<Int, Int>>, // координати клітинок фігури
     val color: Color
@@ -77,7 +75,7 @@ data class Piece(
 
 // Визначаємо 8 деталей з різними формами та кольорами.
 // (Примітка. Фігури залишено без зміни – їх сумарна площа становить 30 клітинок)
-val pieces = listOf(
+private val pieces = listOf(
     Piece(1, listOf(0 to 0, 1 to 0, 2 to 0, 3 to 0, 3 to 1), Color(0xFFFF5733)),       // L-подібна (5 клітинок)
     Piece(2, listOf(0 to 0, 0 to 1, 1 to 0, 1 to 1, 2 to 0, 2 to 1), Color(0xFF33FF57)), // Прямокутник (6)
     Piece(3, listOf(0 to 0, 0 to 1, 1 to 1, 2 to 0, 2 to 1), Color(0xFF3357FF)),       // U-подібна (5)
@@ -86,13 +84,16 @@ val pieces = listOf(
     Piece(6, listOf(0 to 0, 0 to 1, 1 to 0, 1 to 1, 2 to 0), Color(0xFFFE9957)),       // Неправильний прямокутник (5)
     Piece(7, listOf(0 to 0, 1 to 0, 2 to 0, 2 to 1, 2 to 2), Color(0xFF33B0FF)), // L-подібна (5 клітинки)
     Piece(8, listOf(0 to 0, 1 to 0, 2 to 0, 2 to 1, 2 to 1, 3 to 1), Color(0xFFC0FA49)) // S-подібна (5 клітинки)
+)
 
+private val months = setOf(
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 )
 
 // ----------------------------------------------------------------
 // Функція розв’язання головоломки (метод backtracking)
 // ----------------------------------------------------------------
-fun solvePuzzle(
+private fun solvePuzzle(
     board: Board,
     piecesRemaining: List<Piece>
 ): Board? {
@@ -162,13 +163,15 @@ fun App() {
     // Режим позначення зафіксованих клітинок (орієнтирів)
     var markingFixed by remember { mutableStateOf(true) }
     // Повідомлення для користувача
-    var message by remember { mutableStateOf("Клацніть по клітинках для позначення орієнтирів (наприклад, назва місяця або дата).") }
+    var message by remember { mutableStateOf("Клацніть по клітинках для позначення орієнтирів\n(назва місяця та дата).") }
     // Збереження знайденого рішення
     var solution by remember { mutableStateOf<Board?>(null) }
 
     // Розміри Canvas: ширина = maxCols * cellSize, висота = (кількість рядків) * cellSize
     val canvasWidth = cellSize * maxCols
     val canvasHeight = cellSize * boardStructure.size
+
+    val textMeasure = rememberTextMeasurer()
 
     MaterialTheme {
         Surface(
@@ -177,13 +180,16 @@ fun App() {
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(24.dp)
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp)
             ) {
                 Text(
                     text = "Cubastic 3D – Головоломка",
                     style = MaterialTheme.typography.h4,
                     color = Color(0xFF424242)
                 )
+                PieceList(pieces)
                 Spacer(modifier = Modifier.height(16.dp))
                 // Canvas для відтворення ігрового поля з округленими кутами та тінню
                 Row(
@@ -224,16 +230,18 @@ fun App() {
                             for (c in boardState[r].indices) {
                                 val cellValue = boardState[r][c]
                                 val topLeft = Offset(c * cellSize.toPx(), r * cellSize.toPx())
-                                val fillColor = when {
-                                    cellValue == -1 -> Color.DarkGray // зафіксована клітинка
-                                    cellValue == 0 -> Color.White       // порожня
+                                val fillColor = when (cellValue) {
+                                    -1 -> Color.DarkGray // зафіксована клітинка
+                                    0 -> Color.White       // порожня
                                     else -> pieces.find { it.id == cellValue }?.color ?: Color.LightGray
                                 }
+
                                 drawRect(
                                     color = fillColor,
                                     topLeft = topLeft,
                                     size = Size(cellSize.toPx(), cellSize.toPx())
                                 )
+
                                 // Обводка клітинки
                                 drawRect(
                                     color = Color.Black,
@@ -241,24 +249,51 @@ fun App() {
                                     size = Size(cellSize.toPx(), cellSize.toPx()),
                                     style = Stroke(width = 1.5f)
                                 )
+
+                                if (r < 2) {
+                                    val text = months.elementAt(r * boardStructure[r] + c)
+                                    val textSize = textMeasure.measure(text)
+                                    drawText(
+                                        textMeasurer = textMeasure,
+                                        text = text,
+                                        topLeft = Offset(
+                                            topLeft.x + (cellSize.toPx() - textSize.size.width) / 2,
+                                            topLeft.y + (cellSize.toPx() - textSize.size.height) / 2
+                                        ),
+                                    )
+                                } /*else {
+                                    val text = (r * boardStructure[r] + c - 13).toString()
+                                    val textSize = textMeasure.measure(text)
+                                    drawText(
+                                        textMeasurer = textMeasure,
+                                        text = text,
+                                        topLeft = Offset(
+                                            topLeft.x + (cellSize.toPx() - textSize.size.width) / 2,
+                                            topLeft.y + (cellSize.toPx() - textSize.size.height) / 2
+                                        ),
+                                    )
+                                }*/
                             }
                         }
                     }
-
-//                    PieceList(pieces)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                Text(text = message, color = Color(0xFF424242))
+                Text(
+                    text = message,
+                    color = MaterialTheme.colors.onSurface,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
                 Spacer(modifier = Modifier.height(16.dp))
                 Row {
                     if (markingFixed) {
                         Button(onClick = {
                             val fixedCellsCount = boardState.sumOf { row -> row.count { it == -1 } }
                             if (fixedCellsCount != 2) {
-                                message = "Помилка! Ви повинні вибрати рівно дві зафіксовані клітинки."
+                                message = "Помилка!\nВи повинні вибрати рівно дві зафіксовані клітинки."
                             } else {
                                 markingFixed = false
-                                message = "Фіксація завершена. Натисніть «Розв’язати» для пошуку рішення."
+                                message = "Фіксація завершена.\nНатисніть «Розв’язати» для пошуку рішення."
                             }
                         }) {
                             Text("Готово")
@@ -266,32 +301,41 @@ fun App() {
                         Spacer(modifier = Modifier.width(8.dp))
                     }
                     if (!markingFixed && solution == null) {
-                        Button(onClick = {
-                            // Готуємо копію поля для розв’язувача:
-                            // Зафіксовані клітинки (значення -1) не змінюються, інші – 0.
-                            val boardForSolver: Board = boardState.map { row ->
-                                row.map { if (it == -1) -1 else 0 }.toMutableList()
-                            }.toMutableList()
-                            solution = solvePuzzle(boardForSolver, pieces)
-                            if (solution != null) {
-                                message = "Розв’язок знайдено!"
-                                boardState = solution!!
-                            } else {
-                                message = "Розв’язок не знайдено."
-                            }
-                        }) {
+                        Button(
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color(0xFF33FF57),
+                            ),
+                            onClick = {
+                                // Готуємо копію поля для розв’язувача:
+                                // Зафіксовані клітинки (значення -1) не змінюються, інші – 0.
+                                val boardForSolver: Board = boardState.map { row ->
+                                    row.map { if (it == -1) -1 else 0 }.toMutableList()
+                                }.toMutableList()
+                                solution = solvePuzzle(boardForSolver, pieces)
+                                if (solution != null) {
+                                    message = "Розв’язок знайдено!"
+                                    boardState = solution!!
+                                } else {
+                                    message = "Розв’язок не знайдено."
+                                }
+                            }) {
                             Text("Розв’язати")
                         }
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = {
-                        // Скидання поля: створюємо нове поле за boardStructure та повертаємо режим позначення
-                        boardState = boardStructure.map { MutableList(it) { 0 } }.toMutableList()
-                        markingFixed = true
-                        solution = null
-                        message = "Клацніть по клітинках для позначення орієнтирів (наприклад, назва місяця або дата)."
-                    }) {
-                        Text("Скинути")
+                    if (solution != null) {
+                        Button(
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color(0xFFFF5733),
+                            ),
+                            onClick = {
+                                boardState = boardStructure.map { MutableList(it) { 0 } }.toMutableList()
+                                markingFixed = true
+                                solution = null
+                                message =
+                                    "Клацніть по клітинках для позначення орієнтирів\n(назва місяця та дата)."
+                            }) {
+                            Text("Скинути")
+                        }
                     }
                 }
             }
@@ -300,28 +344,31 @@ fun App() {
 }
 
 @Composable
-fun PieceView(piece: Piece) {
+private fun PieceView(piece: Piece) {
     Box(
         modifier = Modifier
             .padding(8.dp)
-            .size(width = 80.dp, height = 60.dp)
+            .size(40.dp, 30.dp),
+        contentAlignment = Alignment.Center
     ) {
         piece.cells.forEach { (x, y) ->
             Box(
                 modifier = Modifier
-                    .offset(x = (x * 20).dp, y = (y * 20).dp)
-                    .size(18.dp)
+                    .offset(x = (x * 11).dp, y = (y * 11).dp)
+                    .size(10.dp)
                     .background(piece.color)
             )
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun PieceList(pieces: List<Piece>) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+private fun PieceList(pieces: List<Piece>) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalArrangement = Arrangement.Center
     ) {
         pieces.forEach { piece ->
             PieceView(piece)

@@ -11,7 +11,7 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         title = "Cubastic3dCalendarSolver",
         state = rememberWindowState(
-            size = DpSize(800.dp, 800.dp)
+            size = DpSize(650.dp, 650.dp)
         )
     ) {
         App()
