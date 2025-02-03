@@ -8,13 +8,19 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -87,7 +93,7 @@ private val pieces = listOf(
 )
 
 private val months = setOf(
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    "Січ", "Лют", "Бер", "Кві", "Тра", "Чер", "Лип", "Сер", "Вер", "Жов", "Лис", "Гру",
 )
 
 // ----------------------------------------------------------------
@@ -187,93 +193,50 @@ fun App() {
                 Text(
                     text = "Cubastic 3D – Головоломка",
                     style = MaterialTheme.typography.h4,
-                    color = Color(0xFF424242)
+                    color = MaterialTheme.colors.onSurface,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
                 )
                 PieceList(pieces)
-                Spacer(modifier = Modifier.height(16.dp))
                 // Canvas для відтворення ігрового поля з округленими кутами та тінню
-                Row(
+                Canvas(
                     modifier = Modifier
-                        .shadow(4.dp, RoundedCornerShape(12.dp))
-                        .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
-                ) {
-                    Canvas(
-                        modifier = Modifier
-                            .size(canvasWidth, canvasHeight)
-                            .pointerInput(Unit) {
-                                detectTapGestures { offset ->
-                                    if (!markingFixed) return@detectTapGestures
-                                    // Обчислюємо індекс рядка та стовпчика за координатами кліку
-                                    val row = (offset.y / cellSize.toPx()).toInt()
-                                    val col = (offset.x / cellSize.toPx()).toInt()
+                        .shadow(12.dp, RoundedCornerShape(6.dp))
+                        .background(Color.Gray, RoundedCornerShape(6.dp))
+                        .border(2.dp, Color.Black, RoundedCornerShape(6.dp))
+                        .clip(RoundedCornerShape(6.dp))
+                        .padding(12.dp)
+                        .requiredSize(canvasWidth, canvasHeight)
+                        .pointerInput(Unit) {
+                            detectTapGestures { offset ->
+                                if (!markingFixed) return@detectTapGestures
+                                // Обчислюємо індекс рядка та стовпчика за координатами кліку
+                                val row = (offset.y / cellSize.toPx()).toInt()
+                                val col = (offset.x / cellSize.toPx()).toInt()
 
-                                    val fixedCellsCount = boardState.sumOf { row -> row.count { it == -1 } }
+                                val fixedCellsCount = boardState.sumOf { row -> row.count { it == -1 } }
 
-                                    // Перевіряємо, чи існує така клітинка (не всі рядки мають однакову кількість клітинок)
-                                    if (row in boardState.indices && col in boardState[row].indices) {
-                                        // Якщо клітинка порожня, зафіксуємо її (значення -1)
-                                        if (boardState[row][col] == 0 && fixedCellsCount < 2) {
-                                            boardState = boardState.map { it.toMutableList() }.toMutableList().also {
-                                                it[row][col] = -1
-                                            }
-                                        } else if (boardState[row][col] == -1) {
-                                            boardState = boardState.map { it.toMutableList() }.toMutableList().also {
-                                                it[row][col] = 0
-                                            }
+                                // Перевіряємо, чи існує така клітинка (не всі рядки мають однакову кількість клітинок)
+                                if (row in boardState.indices && col in boardState[row].indices) {
+                                    // Якщо клітинка порожня, зафіксуємо її (значення -1)
+                                    if (boardState[row][col] == 0 && fixedCellsCount < 2) {
+                                        boardState = boardState.map { it.toMutableList() }.toMutableList().also {
+                                            it[row][col] = -1
+                                        }
+                                    } else if (boardState[row][col] == -1) {
+                                        boardState = boardState.map { it.toMutableList() }.toMutableList().also {
+                                            it[row][col] = 0
                                         }
                                     }
                                 }
                             }
-                    ) {
-                        // Малюємо кожну клітинку окремо
-                        for (r in boardState.indices) {
-                            for (c in boardState[r].indices) {
-                                val cellValue = boardState[r][c]
-                                val topLeft = Offset(c * cellSize.toPx(), r * cellSize.toPx())
-                                val fillColor = when (cellValue) {
-                                    -1 -> Color.DarkGray // зафіксована клітинка
-                                    0 -> Color.White       // порожня
-                                    else -> pieces.find { it.id == cellValue }?.color ?: Color.LightGray
-                                }
-
-                                drawRect(
-                                    color = fillColor,
-                                    topLeft = topLeft,
-                                    size = Size(cellSize.toPx(), cellSize.toPx())
-                                )
-
-                                // Обводка клітинки
-                                drawRect(
-                                    color = Color.Black,
-                                    topLeft = topLeft,
-                                    size = Size(cellSize.toPx(), cellSize.toPx()),
-                                    style = Stroke(width = 1.5f)
-                                )
-
-                                if (r < 2) {
-                                    val text = months.elementAt(r * boardStructure[r] + c)
-                                    val textSize = textMeasure.measure(text)
-                                    drawText(
-                                        textMeasurer = textMeasure,
-                                        text = text,
-                                        topLeft = Offset(
-                                            topLeft.x + (cellSize.toPx() - textSize.size.width) / 2,
-                                            topLeft.y + (cellSize.toPx() - textSize.size.height) / 2
-                                        ),
-                                    )
-                                } /*else {
-                                    val text = (r * boardStructure[r] + c - 13).toString()
-                                    val textSize = textMeasure.measure(text)
-                                    drawText(
-                                        textMeasurer = textMeasure,
-                                        text = text,
-                                        topLeft = Offset(
-                                            topLeft.x + (cellSize.toPx() - textSize.size.width) / 2,
-                                            topLeft.y + (cellSize.toPx() - textSize.size.height) / 2
-                                        ),
-                                    )
-                                }*/
-                            }
+                        }
+                ) {
+                    // Малюємо кожну клітинку окремо
+                    for (r in boardState.indices) {
+                        for (c in boardState[r].indices) {
+                            val cellValue = boardState[r][c]
+                            drawCell(cellValue, textMeasure, c, r)
                         }
                     }
                 }
@@ -343,6 +306,89 @@ fun App() {
     }
 }
 
+private fun DrawScope.drawCell(
+    cellValue: Int,
+    textMeasurer: TextMeasurer,
+    column: Int,
+    row: Int
+) {
+    val topLeft = Offset(column * cellSize.toPx(), row * cellSize.toPx())
+    val fillColor = when (cellValue) {
+        -1 -> Color.Gray // зафіксована клітинка
+        0 -> Color.Gray       // порожня
+        else -> pieces.find { it.id == cellValue }?.color ?: Color.LightGray
+    }
+
+    drawRoundRect(
+        color = fillColor,
+        topLeft = topLeft + Offset(2F, 2F),
+        size = Size(cellSize.toPx() - 4F, cellSize.toPx() - 4F),
+        style = Stroke(width = 4f),
+        cornerRadius = CornerRadius(4F, 4F)
+    )
+    drawRoundRect(
+        color = fillColor.darken(15),
+        topLeft = topLeft + Offset(4F, 4F),
+        size = Size(cellSize.toPx() - 8F, cellSize.toPx() - 8F),
+        style = Stroke(width = 5f),
+        cornerRadius = CornerRadius(4F, 4F)
+    )
+    drawRoundRect(
+        color = fillColor,
+        topLeft = topLeft + Offset(5F, 5F),
+        size = Size(cellSize.toPx() - 10F, cellSize.toPx() - 10F),
+        cornerRadius = CornerRadius(4F, 4F)
+    )
+
+    if (cellValue == -1) {
+        // Обводка вибраної клітинки
+        drawRoundRect(
+            color = Color.Red,
+            topLeft = topLeft + Offset(6F, 6F),
+            size = Size(cellSize.toPx() - 12F, cellSize.toPx() - 12F),
+            style = Stroke(width = 12F),
+            cornerRadius = CornerRadius(4F, 4F)
+        )
+    }
+
+//    // Обводка клітинки
+//    drawRect(
+//        color = Color.Black,
+//        topLeft = topLeft,
+//        size = Size(cellSize.toPx(), cellSize.toPx()),
+//        style = Stroke(width = 1.5f)
+//    )
+
+    if (cellValue <= 0) {
+        if (row < 2) {
+            val text = months.elementAt(row * boardStructure[row] + column)
+            val textSize = textMeasurer.measure(text)
+            drawText(
+                textMeasurer = textMeasurer,
+                text = text,
+                style = TextStyle.Default.copy(color = Color.White, fontWeight = FontWeight.Bold),
+                topLeft = Offset(
+                    topLeft.x + (cellSize.toPx() - textSize.size.width) / 2,
+                    topLeft.y + (cellSize.toPx() - textSize.size.height) / 2
+                ),
+            )
+        } else {
+            val currentNumber = boardStructure.take(row).sum() + column - 11
+            val text = currentNumber.toString()
+            val textSize = textMeasurer.measure(text)
+            drawText(
+                textMeasurer = textMeasurer,
+                text = text,
+                style = TextStyle.Default.copy(color = Color.White, fontWeight = FontWeight.Bold),
+                topLeft = Offset(
+                    topLeft.x + (cellSize.toPx() - textSize.size.width) / 2,
+                    topLeft.y + (cellSize.toPx() - textSize.size.height) / 2
+                ),
+            )
+        }
+    }
+}
+
 @Composable
 private fun PieceView(piece: Piece) {
     Box(
@@ -374,4 +420,15 @@ private fun PieceList(pieces: List<Piece>) {
             PieceView(piece)
         }
     }
+}
+
+private fun Color.darken(percent: Int): Color {
+    val newColor = Color(
+        red = (red * (100 - percent) / 100).coerceIn(0f, 1f),
+        green = (green * (100 - percent) / 100).coerceIn(0f, 1f),
+        blue = (blue * (100 - percent) / 100).coerceIn(0f, 1f),
+        alpha = alpha
+    )
+
+    return newColor
 }
